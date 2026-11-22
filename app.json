@@ -1,0 +1,29 @@
+{
+  "expo": {
+    "name": "EcoSort",
+    "slug": "ecosort",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "backgroundColor": "#F3F4F1"
+    },
+    "android": {
+      "package": "com.ecosort.mobile",
+      "permissions": [
+        "CAMERA",
+        "READ_MEDIA_IMAGES"
+      ]
+    },
+    "ios": {
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "EcoSort membutuhkan kamera untuk mengenali jenis sampah.",
+        "NSPhotoLibraryUsageDescription": "EcoSort membutuhkan galeri untuk memilih foto sampah."
+      }
+    },
+    "plugins": [
+      "expo-status-bar"
+    ]
+  }
+}
