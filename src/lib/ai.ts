@@ -7,6 +7,7 @@ export type ScanResult = {
   confidence: number | null; // 0..1
   explanation: string;
   handling_tip: string;
+  quota?: { used: number; limit: number; remaining: number }; // sisa jatah scan hari ini (dari server)
 };
 
 const GEMINI_KEY = process.env.EXPO_PUBLIC_GEMINI_API_KEY; // opsional, hanya untuk uji coba
@@ -60,6 +61,8 @@ async function viaGeminiDirect(base64: string, mime: string): Promise<ScanResult
 
 async function viaEdgeFunction(base64: string, mime: string): Promise<ScanResult> {
   if (!supabase) throw new Error('AI belum terhubung. Isi .env (Supabase atau kunci Gemini) lalu jalankan ulang aplikasi.');
+  const { data: sess } = await supabase.auth.getSession();
+  if (!sess.session) throw new Error('Masuk (login) dulu untuk memakai scan AI.');
   const { data, error } = await supabase.functions.invoke('classify-waste', { body: { image_base64: base64, mime_type: mime } });
   if (error) {
     let msg = error.message;
@@ -67,7 +70,10 @@ async function viaEdgeFunction(base64: string, mime: string): Promise<ScanResult
     throw new Error(msg);
   }
   if ((data as any)?.error) throw new Error((data as any).error);
-  return normalize(data);
+  const r = normalize(data);
+  const m = (data as any)?._meta;
+  if (m && typeof m.limit === 'number') r.quota = { used: m.used, limit: m.limit, remaining: m.remaining };
+  return r;
 }
 
 export async function classifyWaste(base64: string, mime = 'image/jpeg'): Promise<ScanResult> {

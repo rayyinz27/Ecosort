@@ -55,6 +55,7 @@ export default function ScanResultModal({ result: resultProp, photo, onClose, on
                 </View>
               ) : null}
               <Text style={[ui.tinyText, { marginTop: 12 }]}>Hasil AI bisa keliru. Periksa kembali jika kamu ragu.</Text>
+              {result.quota ? <Text style={[ui.tinyText, { marginTop: 4 }]}>Sisa scan hari ini: {result.quota.remaining} dari {result.quota.limit}</Text> : null}
 
               {!unsure && (
                 <TouchableOpacity style={ui.primaryButton} onPress={result.category === 'Daur Ulang' ? onFindBank : onCatalog}>

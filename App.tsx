@@ -104,7 +104,13 @@ function EcoSortApp() {
     return () => sub.remove();
   }, [overlay]);
 
+  const needLogin = () => Alert.alert('Login diperlukan','Kamu harus masuk (login) dulu untuk menggunakan fitur scan AI.',[
+    { text:'Nanti', style:'cancel' },
+    { text:'Masuk', onPress:()=>setAuthOpen(true) },
+  ]);
+
   const pickImage = async (camera:boolean) => {
+    if (!session) { needLogin(); return; }
     const permission = camera
       ? await ImagePicker.requestCameraPermissionsAsync()
       : await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -117,6 +123,7 @@ function EcoSortApp() {
   };
 
   const startScan = async () => {
+    if (!session) { needLogin(); return; }
     if (!photo || !photoB64) { Alert.alert('Pilih foto dahulu','Ambil foto atau pilih gambar dari galeri.'); return; }
     setScanning(true); setScanResult(null); setScanDone(false);
     try {
@@ -166,11 +173,12 @@ function EcoSortApp() {
 
   const renderScan = () => <ScrollView contentContainerStyle={styles.page}>
     <Header title="Scan Sampah" subtitle="Kenali sampah sebelum membuangnya."/>
+    {!session && <View style={[styles.noteCard,{marginTop:0,marginBottom:12}]}><Ionicons name="lock-closed-outline" size={20} color={DARK}/><View style={{flex:1}}><Text style={styles.cardTitle}>Login diperlukan</Text><Text style={styles.smallText}>Masuk dulu untuk menggunakan scan AI. Ada batas scan per hari agar layanan tetap adil untuk semua pengguna.</Text><TouchableOpacity style={[styles.primaryButton,{marginTop:10}]} onPress={()=>setAuthOpen(true)}><Text style={styles.primaryButtonText}>Masuk / Daftar</Text></TouchableOpacity></View></View>}
     <View style={styles.scanPanel}>
       <View style={styles.scanFrame}>{photo ? <Image source={{uri:photo}} style={styles.previewImage}/> : <View style={styles.emptyPreview}><Ionicons name="camera-outline" size={56} color="#9BA18F"/><Text style={styles.smallText}>Pratinjau foto sampah</Text><Text style={styles.tinyText}>Satu foto dengan satu objek utama</Text></View>}</View>
       <Text style={styles.cardTitle}>Ambil foto sampah</Text><Text style={styles.smallText}>Pastikan objek terlihat jelas dan pencahayaan cukup.</Text>
-      <TouchableOpacity style={styles.primaryButton} onPress={()=>pickImage(true)}><Ionicons name="camera" size={19} color={DARK}/><Text style={styles.primaryButtonText}>Buka Kamera</Text></TouchableOpacity>
-      <TouchableOpacity style={styles.secondaryButton} onPress={()=>pickImage(false)}><Ionicons name="images-outline" size={19} color={DARK}/><Text style={styles.secondaryButtonText}>Pilih dari Galeri</Text></TouchableOpacity>
+      <TouchableOpacity style={[styles.primaryButton,!session&&{opacity:0.5}]} onPress={()=>pickImage(true)}><Ionicons name="camera" size={19} color={DARK}/><Text style={styles.primaryButtonText}>Buka Kamera</Text></TouchableOpacity>
+      <TouchableOpacity style={[styles.secondaryButton,!session&&{opacity:0.5}]} onPress={()=>pickImage(false)}><Ionicons name="images-outline" size={19} color={DARK}/><Text style={styles.secondaryButtonText}>Pilih dari Galeri</Text></TouchableOpacity>
     </View>
     {photo && <TouchableOpacity style={[styles.primaryButton,scanning&&{opacity:0.7}]} onPress={startScan} disabled={scanning}>{scanning ? <ActivityIndicator color={DARK}/> : <Ionicons name="scan" size={18} color={DARK}/>}<Text style={styles.primaryButtonText}>{scanning ? 'Menganalisis dengan AI...' : 'Proses Foto'}</Text></TouchableOpacity>}
     <View style={styles.noteCard}><Ionicons name="information-circle-outline" size={20} color={DARK}/><Text style={[styles.smallText,{flex:1}]}>Foto dianalisis oleh AI untuk mengelompokkan sampah ke kategori organik, daur ulang, atau residu. Gunakan satu objek utama dengan pencahayaan yang cukup.</Text></View>
